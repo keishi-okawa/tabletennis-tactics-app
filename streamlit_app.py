@@ -3,10 +3,18 @@ import joblib
 import pandas as pd
 import os
 
-st.title("卓球戦術アドバイザー 🎯")
+st.title("🏓 卓球戦術アドバイザー 🎯")
+
+# モデルファイル一覧を取得
+models = [f.replace("_model.pkl", "") for f in os.listdir("models") if f.endswith("_model.pkl")]
+
+# モデルが見つからなければ中止
+if not models:
+    st.error("モデルファイルが見つかりません。`models/` フォルダに `.pkl` ファイルを追加してください。")
+    st.stop()
 
 # 対戦相手の選択
-opponent = st.selectbox("対戦相手を選択", [f.replace("_model.pkl", "") for f in os.listdir("models") if f.endswith("_model.pkl")])
+opponent = st.selectbox("対戦相手を選択", models)
 
 # モデルとエンコーダの読み込み
 model_path = f"models/{opponent}_model.pkl"
@@ -32,7 +40,7 @@ input_data = user_input()
 
 # 戦術提案
 if st.button("戦術を提案"):
-    input_df = pd.DataFrame([[
+    input_df = pd.DataFrame([[ 
         encoders["サーブ種類"].transform([input_data["サーブ種類"]])[0],
         encoders["サーブコース"].transform([input_data["サーブコース"]])[0],
         encoders["サーブ速度"].transform([input_data["サーブ速度"]])[0],
@@ -41,7 +49,8 @@ if st.button("戦術を提案"):
 
     prediction = model.predict(input_df)[0]
     result = {
-        key: encoders[key].inverse_transform([prediction[i]])[0] for i, key in enumerate(["レシーブ方法", "レシーブコース", "レシーブ長さ", "最終得点"])
+        key: encoders[key].inverse_transform([prediction[i]])[0] 
+        for i, key in enumerate(["レシーブ方法", "レシーブコース", "レシーブ長さ", "最終得点"])
     }
 
     st.success("### 推奨レシーブ戦術")
